@@ -244,6 +244,9 @@ class OverlayService : Service() {
                     preset.joystick = updatedJoy
                     autoSaveLive()
                     wsClient.sendLiveJoystickUpdate(updatedJoy.centerX, updatedJoy.centerY, updatedJoy.radius)
+                    serviceScope.launch {
+                        InjectorManager.sendIpcCommand("UPDATE_JOYSTICK: ${updatedJoy.centerX} ${updatedJoy.centerY} ${updatedJoy.radius}")
+                    }
                 }
             )
             windowManager.addView(joyView, joyView.layoutParamsWm)
@@ -265,6 +268,9 @@ class OverlayService : Service() {
                     preset.camera = updatedCam
                     autoSaveLive()
                     wsClient.sendLiveCameraUpdate(updatedCam.pivotCenterX, updatedCam.pivotCenterY, updatedCam.resetRadius)
+                    serviceScope.launch {
+                        InjectorManager.sendIpcCommand("UPDATE_CAMERA: ${updatedCam.pivotCenterX} ${updatedCam.pivotCenterY} ${updatedCam.resetRadius} ${updatedCam.sensitivityX} ${updatedCam.sensitivityY}")
+                    }
                 }
             )
             windowManager.addView(camView, camView.layoutParamsWm)
@@ -392,6 +398,10 @@ class OverlayService : Service() {
     private fun autoSaveLive() {
         val preset = activePreset ?: return
         repository.savePreset(preset)
+        val path = "/sdcard/VbridgeBind/preset${preset.info.presetId}/keybinding${preset.activeSlot.id}/profile.json"
+        serviceScope.launch {
+            InjectorManager.sendIpcCommand("RELOAD_PROFILE: $path")
+        }
     }
 
     private fun toggleJoystick() {

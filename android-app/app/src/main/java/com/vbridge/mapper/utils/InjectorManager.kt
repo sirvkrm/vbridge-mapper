@@ -1,6 +1,8 @@
 package com.vbridge.mapper.utils
 
 import android.content.Context
+import android.net.LocalSocket
+import android.net.LocalSocketAddress
 import android.os.Build
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
@@ -14,11 +16,19 @@ import java.util.concurrent.TimeUnit
 
 object InjectorManager {
     private const val TAG = "InjectorManager"
-    const val TARGET_BIN_PATH = "/data/local/tmp/touch_injector"
+    const val PC_BIN_PATH = "/data/local/tmp/touch_injector"
+    const val STANDALONE_BIN_PATH = "/data/local/tmp/vbridge_engine"
     const val DEFAULT_TOUCH_DEV = "/dev/input/event3"
+    const val IPC_SOCKET_NAME = "vbridge_ctrl"
+
+    enum class EngineMode(val displayName: String, val binaryName: String, val processName: String) {
+        STANDALONE_OTG("Standalone OTG (Zero-PC)", "vbridge_engine", "vbridge_engine"),
+        PC_BRIDGE("PC Bridge Mode", "touch_injector", "touch_injector")
+    }
 
     data class InjectorStatus(
         val isRunning: Boolean,
+        val mode: EngineMode? = null,
         val pid: String? = null,
         val devicePath: String = DEFAULT_TOUCH_DEV
     )
@@ -30,61 +40,141 @@ object InjectorManager {
     )
 
     /**
-     * Checks if touch_injector daemon is running via root shell.
+     * Checks if either the standalone OTG engine or PC bridge daemon is running.
      */
     suspend fun checkStatus(): InjectorStatus = withContext(Dispatchers.IO) {
-        val res = runRootCommand("pidof touch_injector", timeoutMs = 1500)
-        val pid = res.output.trim().split("\\s+".toRegex()).firstOrNull { it.isNotEmpty() }
-        val isRunning = res.isSuccess && !pid.isNullOrEmpty()
-        InjectorStatus(isRunning = isRunning, pid = pid)
+        // 1. Check Standalone OTG Engine
+        val resStandalone = runRootCommand("pidof vbridge_engine", timeoutMs = 1200)
+        val pidStandalone = resStandalone.output.trim().split("\\s+".toRegex()).firstOrNull { it.isNotEmpty() }
+        if (resStandalone.isSuccess && !pidStandalone.isNullOrEmpty()) {
+            return@withContext InjectorStatus(
+                isRunning = true,
+                mode = EngineMode.STANDALONE_OTG,
+                pid = pidStandalone
+            )
+        }
+
+        // 2. Check PC Bridge Daemon
+        val resPc = runRootCommand("pidof touch_injector", timeoutMs = 1200)
+        val pidPc = resPc.output.trim().split("\\s+".toRegex()).firstOrNull { it.isNotEmpty() }
+        if (resPc.isSuccess && !pidPc.isNullOrEmpty()) {
+            return@withContext InjectorStatus(
+                isRunning = true,
+                mode = EngineMode.PC_BRIDGE,
+                pid = pidPc
+            )
+        }
+
+        InjectorStatus(isRunning = false)
     }
 
     /**
-     * Extracts bundled touch_injector binary from assets to internal storage,
-     * copies it to /data/local/tmp/, chmods 755, and launches the daemon in background.
+     * Starts the Standalone On-Device Input Engine (Zero-PC Mode).
+     * Intercepts OTG/Bluetooth keyboard & mouse, hides Android cursor, and maps to event3.
      */
-    suspend fun restartInjector(context: Context): Result<String> = withContext(Dispatchers.IO) {
+    suspend fun startStandaloneEngine(
+        context: Context,
+        profilePath: String = "/sdcard/VbridgeBind/preset1/keybinding1/profile.json"
+    ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            // 1. Kill any existing instance
-            runRootCommand("pkill -9 -f touch_injector", timeoutMs = 1500)
+            // Kill existing daemons
+            runRootCommand("pkill -9 -f vbridge_engine; pkill -9 -f touch_injector", timeoutMs = 1500)
 
-            // 2. Ensure binary exists in /data/local/tmp/
-            val localAssetBin = File(context.filesDir, "touch_injector")
-            try {
-                context.assets.open("touch_injector").use { input ->
-                    FileOutputStream(localAssetBin).use { output ->
-                        input.copyTo(output)
-                    }
-                }
-                localAssetBin.setExecutable(true, false)
-                runRootCommand("cp ${localAssetBin.absolutePath} $TARGET_BIN_PATH", timeoutMs = 1500)
-            } catch (e: Exception) {
-                Log.w(TAG, "Asset copy skipped or failed: ${e.message}")
-            }
+            // Extract binary from assets if needed
+            deployBinaryFromAssets(context, "vbridge_engine", STANDALONE_BIN_PATH)
 
-            // 3. Set permissions & launch daemon with nohup and detached I/O
-            val launchCmd = "chmod 755 $TARGET_BIN_PATH && nohup $TARGET_BIN_PATH -d $DEFAULT_TOUCH_DEV </dev/null >/dev/null 2>&1 &"
-            runRootCommand(launchCmd, timeoutMs = 2000)
+            // Launch detached
+            val cmd = "chmod 755 $STANDALONE_BIN_PATH && nohup $STANDALONE_BIN_PATH -d $DEFAULT_TOUCH_DEV -p \"$profilePath\" </dev/null >/dev/null 2>&1 &"
+            runRootCommand(cmd, timeoutMs = 2000)
 
-            // 4. Give the kernel daemon 350ms to bind socket
             delay(350)
 
-            // 5. Verify PID
             val check = checkStatus()
-            if (check.isRunning && check.pid != null) {
-                Result.success("Touch injector running (PID: ${check.pid})")
+            if (check.isRunning && check.mode == EngineMode.STANDALONE_OTG) {
+                Result.success("Standalone OTG Engine Active (PID: ${check.pid})")
             } else {
-                Result.failure(Exception("Daemon launched but PID not detected."))
+                Result.failure(Exception("Failed to launch standalone OTG engine."))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to restart injector", e)
+            Log.e(TAG, "startStandaloneEngine failed: ${e.message}", e)
             Result.failure(e)
         }
     }
 
     /**
-     * Executes a command string using ProcessBuilder with su -c and a strict timeout.
+     * Starts the PC Bridge Daemon (listening on TCP port 8888 for Windows client).
      */
+    suspend fun startPcBridgeDaemon(context: Context): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            // Kill existing daemons
+            runRootCommand("pkill -9 -f vbridge_engine; pkill -9 -f touch_injector", timeoutMs = 1500)
+
+            // Extract binary from assets if needed
+            deployBinaryFromAssets(context, "touch_injector", PC_BIN_PATH)
+
+            // Launch detached
+            val cmd = "chmod 755 $PC_BIN_PATH && nohup $PC_BIN_PATH -d $DEFAULT_TOUCH_DEV </dev/null >/dev/null 2>&1 &"
+            runRootCommand(cmd, timeoutMs = 2000)
+
+            delay(350)
+
+            val check = checkStatus()
+            if (check.isRunning && check.mode == EngineMode.PC_BRIDGE) {
+                Result.success("PC Bridge Daemon Active (PID: ${check.pid})")
+            } else {
+                Result.failure(Exception("Failed to launch PC bridge daemon."))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "startPcBridgeDaemon failed: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Restarts whichever daemon is active or restarts in specified mode.
+     */
+    suspend fun restartInjector(context: Context, preferredMode: EngineMode = EngineMode.STANDALONE_OTG): Result<String> {
+        return if (preferredMode == EngineMode.STANDALONE_OTG) {
+            startStandaloneEngine(context)
+        } else {
+            startPcBridgeDaemon(context)
+        }
+    }
+
+    /**
+     * Sends a real-time IPC message to vbridge_engine via abstract Unix domain socket (@vbridge_ctrl).
+     * Zero-overhead, sub-millisecond execution!
+     */
+    suspend fun sendIpcCommand(command: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            LocalSocket().use { socket ->
+                socket.connect(LocalSocketAddress(IPC_SOCKET_NAME, LocalSocketAddress.Namespace.ABSTRACT))
+                socket.outputStream.write(command.toByteArray(Charsets.UTF_8))
+                socket.outputStream.flush()
+            }
+            Log.i(TAG, "IPC command sent successfully: $command")
+            true
+        } catch (e: Exception) {
+            Log.w(TAG, "IPC command failed (engine might be in PC mode or stopped): ${e.message}")
+            false
+        }
+    }
+
+    private fun deployBinaryFromAssets(context: Context, assetName: String, targetPath: String) {
+        val localFile = File(context.filesDir, assetName)
+        try {
+            context.assets.open(assetName).use { input ->
+                FileOutputStream(localFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            localFile.setExecutable(true, false)
+            runRootCommand("cp ${localFile.absolutePath} $targetPath && chmod 755 $targetPath", timeoutMs = 1500)
+        } catch (e: Exception) {
+            Log.w(TAG, "deployBinaryFromAssets warning for $assetName: ${e.message}")
+        }
+    }
+
     fun runRootCommand(command: String, timeoutMs: Long = 2500): CommandResult {
         return try {
             val process = ProcessBuilder("su", "-c", command).start()

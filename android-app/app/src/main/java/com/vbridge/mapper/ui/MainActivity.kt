@@ -321,67 +321,146 @@ class MainActivity : ComponentActivity() {
             border = BorderStroke(1.dp, if (injectorStatus.isRunning) NeonEmerald.copy(alpha = 0.5f) else NeonCrimson.copy(alpha = 0.5f)),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
             ) {
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(if (injectorStatus.isRunning) NeonEmerald else NeonCrimson)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
-                        Text(
-                            text = "Kernel Touch Injector",
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(if (injectorStatus.isRunning) NeonEmerald else NeonCrimson)
                         )
-                        Text(
-                            text = if (injectorStatus.isRunning) "Daemon Active (PID: ${injectorStatus.pid})" else "Daemon Inactive / Dead",
-                            color = if (injectorStatus.isRunning) NeonEmerald else NeonCrimson,
-                            fontSize = 11.sp
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = "Kernel Input Engine",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            val statusDesc = if (injectorStatus.isRunning) {
+                                val modeLabel = when (injectorStatus.mode) {
+                                    InjectorManager.EngineMode.STANDALONE_OTG -> "⚡ Standalone OTG (Zero-PC)"
+                                    InjectorManager.EngineMode.PC_BRIDGE -> "💻 PC Bridge (Port 8888)"
+                                    null -> "Active"
+                                }
+                                "$modeLabel • PID ${injectorStatus.pid}"
+                            } else {
+                                "Engine Inactive / Stopped"
+                            }
+                            Text(
+                                text = statusDesc,
+                                color = if (injectorStatus.isRunning) NeonEmerald else NeonCrimson,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+
+                    IconButton(
+                        onClick = {
+                            scope.launch {
+                                isRefreshing = true
+                                injectorStatus = InjectorManager.checkStatus()
+                                isRefreshing = false
+                            }
+                        },
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Check Status",
+                            tint = CyberCyan,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
 
-                Button(
-                    onClick = {
-                        scope.launch {
-                            isRefreshing = true
-                            Toast.makeText(this@MainActivity, "🔄 Restarting touch injector...", Toast.LENGTH_SHORT).show()
-                            val res = InjectorManager.restartInjector(this@MainActivity)
-                            injectorStatus = InjectorManager.checkStatus()
-                            isRefreshing = false
-                            res.onSuccess {
-                                Toast.makeText(this@MainActivity, "✅ $it", Toast.LENGTH_SHORT).show()
-                            }.onFailure {
-                                Toast.makeText(this@MainActivity, "❌ Failed: ${it.message}", Toast.LENGTH_LONG).show()
-                            }
-                        }
-                    },
-                    enabled = !isRefreshing,
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (injectorStatus.isRunning) Color(0xFF1E293B) else NeonCrimson.copy(alpha = 0.35f)
-                    ),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = if (isRefreshing) "Restarting..." else "🔄 Refresh",
-                        color = if (injectorStatus.isRunning) CyberCyan else Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    val isOtgActive = injectorStatus.isRunning && injectorStatus.mode == InjectorManager.EngineMode.STANDALONE_OTG
+                    val isPcActive = injectorStatus.isRunning && injectorStatus.mode == InjectorManager.EngineMode.PC_BRIDGE
+
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                isRefreshing = true
+                                Toast.makeText(this@MainActivity, "🔌 Launching Standalone OTG Engine...", Toast.LENGTH_SHORT).show()
+                                val activePid = repository.getActivePresetId()
+                                val activeBid = repository.getActiveBindingId()
+                                val profilePath = "/sdcard/VbridgeBind/preset$activePid/keybinding$activeBid/profile.json"
+                                val res = InjectorManager.startStandaloneEngine(this@MainActivity, profilePath)
+                                injectorStatus = InjectorManager.checkStatus()
+                                isRefreshing = false
+                                res.onSuccess {
+                                    Toast.makeText(this@MainActivity, "✅ $it", Toast.LENGTH_SHORT).show()
+                                }.onFailure {
+                                    Toast.makeText(this@MainActivity, "❌ Failed: ${it.message}", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        },
+                        enabled = !isRefreshing,
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isOtgActive) NeonEmerald.copy(alpha = 0.25f) else Color(0xFF1E293B)
+                        ),
+                        border = BorderStroke(1.dp, if (isOtgActive) NeonEmerald else Color(0x33FFFFFF)),
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = if (isOtgActive) "🟢 OTG Active" else "🔌 Launch OTG",
+                            color = if (isOtgActive) NeonEmerald else Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                isRefreshing = true
+                                Toast.makeText(this@MainActivity, "💻 Launching PC Bridge Daemon...", Toast.LENGTH_SHORT).show()
+                                val res = InjectorManager.startPcBridgeDaemon(this@MainActivity)
+                                injectorStatus = InjectorManager.checkStatus()
+                                isRefreshing = false
+                                res.onSuccess {
+                                    Toast.makeText(this@MainActivity, "✅ $it", Toast.LENGTH_SHORT).show()
+                                }.onFailure {
+                                    Toast.makeText(this@MainActivity, "❌ Failed: ${it.message}", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        },
+                        enabled = !isRefreshing,
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isPcActive) CyberCyan.copy(alpha = 0.25f) else Color(0xFF1E293B)
+                        ),
+                        border = BorderStroke(1.dp, if (isPcActive) CyberCyan else Color(0x33FFFFFF)),
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = if (isPcActive) "🟢 PC Active" else "💻 Launch PC",
+                            color = if (isPcActive) CyberCyan else Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
