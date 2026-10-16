@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "center": [
+    420,
+    800
+  ],
+  "radius": 140,
+  "keys": {
+    "w": "UP",
+    "s": "DOWN",
+    "a": "LEFT",
+    "d": "RIGHT"
+  },
+  "sprint_key": "shift"
+}

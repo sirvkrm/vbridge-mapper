@@ -1,0 +1,42 @@
+# ====================================================================
+# Git Ignore for VBridge Mapper (Android + Linux Kernel Daemon + PC)
+# ====================================================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Android / Gradle
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+*.ap_
+output.json
+local.properties
+.idea/
+*.iml
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+
+# Scratch / Temporary Media
+scratch/*.png
+scratch/check_gh.py
+*.tmp

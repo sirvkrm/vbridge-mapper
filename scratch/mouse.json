@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "toggle_key": "`",
+  "pivot_center": [
+    1650,
+    540
+  ],
+  "reset_radius": 260,
+  "sensitivity_x": 1.4,
+  "sensitivity_y": 1.2
+}

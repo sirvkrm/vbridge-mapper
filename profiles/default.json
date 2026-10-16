@@ -1,0 +1,36 @@
+{
+  "app_name": "Generic Touchscreen Profile",
+  "package_name": "default",
+  "display": {
+    "screen_width": 2340,
+    "screen_height": 1080,
+    "digitizer_max_x": 1080,
+    "digitizer_max_y": 2340,
+    "orientation": 90
+  },
+  "camera": {
+    "enabled": true,
+    "toggle_key": "`",
+    "pivot_center": [1600, 540],
+    "reset_radius": 250,
+    "sensitivity_x": 1.0,
+    "sensitivity_y": 1.0
+  },
+  "joystick": {
+    "enabled": true,
+    "center": [400, 800],
+    "radius": 120,
+    "keys": {
+      "w": "UP",
+      "s": "DOWN",
+      "a": "LEFT",
+      "d": "RIGHT"
+    },
+    "sprint_key": "shift"
+  },
+  "key_mappings": [
+    { "key": "mouse_left", "label": "Action 1", "x": 1900, "y": 750, "type": "click" },
+    { "key": "mouse_right", "label": "Action 2", "x": 1900, "y": 450, "type": "click" },
+    { "key": "space", "label": "Jump", "x": 2100, "y": 700, "type": "click" }
+  ]
+}

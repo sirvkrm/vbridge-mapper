@@ -1,0 +1,50 @@
+{
+  "app_name": "BGMI / PUBG Mobile",
+  "package_name": "com.pubg.imobile",
+  "display": {
+    "screen_width": 2340,
+    "screen_height": 1080,
+    "digitizer_max_x": 1080,
+    "digitizer_max_y": 2340,
+    "orientation": 90
+  },
+  "camera": {
+    "enabled": true,
+    "toggle_key": "`",
+    "pivot_center": [1650, 540],
+    "reset_radius": 420,
+    "sensitivity_x": 1.4,
+    "sensitivity_y": 1.2
+  },
+  "joystick": {
+    "enabled": true,
+    "center": [420, 800],
+    "radius": 140,
+    "keys": {
+      "w": "UP",
+      "s": "DOWN",
+      "a": "LEFT",
+      "d": "RIGHT"
+    },
+    "sprint_key": "shift"
+  },
+  "key_mappings": [
+    { "key": "mouse_left", "label": "Fire", "x": 1950, "y": 750, "type": "click" },
+    { "key": "mouse_right", "label": "ADS / Scope", "x": 1920, "y": 420, "type": "click" },
+    { "key": "space", "label": "Jump", "x": 2150, "y": 680, "type": "click" },
+    { "key": "c", "label": "Crouch", "x": 1980, "y": 920, "type": "click" },
+    { "key": "z", "label": "Prone", "x": 2180, "y": 920, "type": "click" },
+    { "key": "r", "label": "Reload", "x": 1820, "y": 920, "type": "click" },
+    { "key": "f", "label": "Interact / Loot", "x": 1520, "y": 480, "type": "click" },
+    { "key": "g", "label": "Loot Slot 2", "x": 1520, "y": 560, "type": "click" },
+    { "key": "q", "label": "Lean Left", "x": 620, "y": 480, "type": "click" },
+    { "key": "e", "label": "Lean Right", "x": 750, "y": 480, "type": "click" },
+    { "key": "1", "label": "Primary Weapon", "x": 1050, "y": 960, "type": "click" },
+    { "key": "2", "label": "Secondary Weapon", "x": 1300, "y": 960, "type": "click" },
+    { "key": "3", "label": "Pistol / Melee", "x": 1180, "y": 860, "type": "click" },
+    { "key": "4", "label": "Grenade", "x": 1580, "y": 960, "type": "click" },
+    { "key": "5", "label": "Medical", "x": 780, "y": 960, "type": "click" },
+    { "key": "tab", "label": "Backpack", "x": 200, "y": 950, "type": "click" },
+    { "key": "m", "label": "Map", "x": 2200, "y": 120, "type": "click" }
+  ]
+}

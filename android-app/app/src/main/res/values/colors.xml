@@ -1,0 +1,23 @@
+<resources>
+    <!-- Cyber Neon Gaming Palette -->
+    <color name="primary">#00E5FF</color>
+    <color name="primary_variant">#00B0FF</color>
+    <color name="secondary">#7C4DFF</color>
+    <color name="secondary_variant">#651FFF</color>
+    <color name="accent_amber">#FFD600</color>
+    <color name="accent_emerald">#00E676</color>
+    <color name="accent_crimson">#FF1744</color>
+
+    <color name="bg_dark">#0F141C</color>
+    <color name="surface_dark">#18202C</color>
+    <color name="surface_card">#1E293B</color>
+    <color name="surface_border">#334155</color>
+    <color name="text_primary">#F8FAFC</color>
+    <color name="text_secondary">#94A3B8</color>
+    
+    <!-- Overlay Translucent HUD Colors -->
+    <color name="overlay_hud_bg">#D90A0E17</color>
+    <color name="overlay_pin_bg">#CC1E293B</color>
+    <color name="overlay_pin_border">#00E5FF</color>
+    <color name="overlay_pin_active">#7C4DFF</color>
+</resources>

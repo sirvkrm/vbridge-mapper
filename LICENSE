@@ -1,0 +1,34 @@
+PolyForm Noncommercial License 1.0.0
+
+<https://polyformproject.org/licenses/noncommercial/1.0.0>
+
+Copyright (c) 2026 sirvkrm (<https://github.com/sirvkrm>)
+All Rights Reserved.
+
+## 1. Purpose
+This software is made open-source to provide complete transparency, safety verification, and auditability for root-level Android kernel input injection and companion client control systems. 
+
+This license allows you to use, study, audit, compile, modify, and run this software for any noncommercial purpose, while strictly reserving all commercial exploitation rights to the original author (`sirvkrm`).
+
+## 2. Agreement
+In order to receive this license, you have to agree to its rules. Those rules are conditions to this license. If you do not agree to them, you do not have a license to this software.
+
+## 3. Noncommercial Purpose
+You may use, copy, modify, distribute, and run this software for any noncommercial purpose. A "noncommercial purpose" is any purpose other than:
+1. Selling, renting, licensing, or monetizing the software or any derived binaries.
+2. Bundling the software into commercial hardware (e.g., converter dongles, gaming peripherals, OEM devices) or commercial software packages.
+3. Operating or providing a commercial service, cloud platform, SaaS, paid game booster, or paid emulator utilizing the software.
+4. Distributing modifications behind a paywall, subscription, or ad-monetized portal.
+5. Any activity primarily intended for or directed towards commercial advantage or monetary compensation.
+
+## 4. Commercial Use Strictly Prohibited Without Written Authorization
+Any commercial use, integration, redistribution, or bundling is strictly prohibited unless you obtain explicit, prior written permission and a separate commercial license agreement directly from the author (`sirvkrm`).
+
+## 5. Notices
+You must ensure that everyone who receives a copy of any part of this software also receives a copy of this license, the copyright notice above, and clear attribution to the original author.
+
+## 6. Author Rights & Relicensing
+The original author (`sirvkrm`) retains full, exclusive copyright and reserves the absolute right to relicense, dual-license, amend, or adjust the restrictions of this project for future releases.
+
+## 7. No Warranty (Disclaimer of Liability)
+As far as the law allows, this software comes as is, without any warranty or condition, and no contributor will be liable to anyone for any damages related to this software or this license, under any kind of legal claim.
