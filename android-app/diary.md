@@ -494,4 +494,33 @@ The boss flagged critical operational friction points during in-game testing:
    - Compiled with AGP 9.1.0 in 36s. Streamed directly to Redmi K20 Pro (`295cc14`).
    - Verified live in Free Fire MAX match session.
 
+---
+
+## Entry 009 - Global Open-Source Launch & Strict Non-Commercial Licensing on GitHub
+**Date:** October 16, 2026 - 15:30 IST  
+**Status:** Published Live to GitHub (`https://github.com/sirvkrm/vbridge-mapper`)  
+
+### 1. The Directive
+The boss issued an inspiring strategic directive:
+Because our engine operates at the physical Linux kernel layer (`su` / `/dev/input/event3`), absolute security, safety verification, and public trust are paramount. Software running with root privileges must be open-source so the community can audit every single syscall, line of C, Kotlin, and Python.
+
+Simultaneously, the boss commanded a strict non-commercial license so commercial entities, hardware dongle manufacturers, or closed-source paywalls cannot exploit or monetize our hard work without explicit permission.
+
+### 2. Actions Executed
+1. **Repository Creation**:
+   - Initialized and published repository: `https://github.com/sirvkrm/vbridge-mapper`
+   - Configured branch `main` as the default branch.
+2. **Strict License Application (`LICENSE`)**:
+   - Applied **PolyForm Noncommercial License 1.0.0** combined with explicit author reservation of rights for `sirvkrm`.
+   - Complete freedom for personal, educational, research, and non-commercial gaming use.
+   - Any commercial use, hardware bundling, or paid services strictly prohibited without prior written permission from the author.
+3. **Repository Architecture & Hygiene**:
+   - Comprehensive `.gitignore` filtering out Android build artifacts, `.gradle`, `local.properties`, Python pycache, and scratch media.
+   - Comprehensive `README.md` featuring architecture diagrams, anti-cheat comparison tables, quick-start guides, and hardware verification notes.
+   - Clean initial commit with all 102 source files pushed directly to `origin/main`.
+
+### 3. Next Mission
+Full speed ahead to the Standalone On-Device OTG / Bluetooth Engine (Zero-PC Mode) so players can plug their mouse and keyboard directly into the phone and dominate without touching a PC!
+
+
 
